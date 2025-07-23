@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # E-commerce AI Data Agent
 
 An AI-powered e-commerce data analysis agent that converts natural language questions into SQL queries and provides intelligent business insights using Google's Gemini AI.
@@ -189,3 +190,7 @@ This project is available for demonstration and portfolio purposes.
 ---
 
 **Built with ❤️ using Python, Flask, and Google Gemini AI**
+=======
+# ecommerce-ai-agent
+AI-powered e-commerce data analysis agent with natural language to SQL conversion
+>>>>>>> 32b7160e2394f7b86be9b716ddac828a7a7b9a45
