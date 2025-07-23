@@ -13,5 +13,6 @@ dependencies = [
     "pydantic>=2.11.7",
     "sift-stack-py>=0.7.0",
     "sqlalchemy>=2.0.41",
+    "trafilatura>=2.0.0",
     "werkzeug>=3.1.3",
 ]
