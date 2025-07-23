@@ -6,82 +6,79 @@ class ProductEligibility(db.Model):
     __tablename__ = 'product_eligibility'
     
     id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.String(50), unique=True, nullable=False)
-    product_name = db.Column(db.String(200), nullable=False)
-    category = db.Column(db.String(100), nullable=False)
-    brand = db.Column(db.String(100), nullable=False)
-    is_eligible_for_ads = db.Column(db.Boolean, default=True)
+    item_id = db.Column(db.Integer, nullable=False, index=True)
+    eligibility_datetime = db.Column(db.DateTime, nullable=False)
+    eligibility = db.Column(db.Boolean, nullable=False)
+    message = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
         return {
             'id': self.id,
-            'product_id': self.product_id,
-            'product_name': self.product_name,
-            'category': self.category,
-            'brand': self.brand,
-            'is_eligible_for_ads': self.is_eligible_for_ads
+            'item_id': self.item_id,
+            'eligibility_datetime': self.eligibility_datetime.isoformat() if self.eligibility_datetime else None,
+            'eligibility': self.eligibility,
+            'message': self.message
         }
 
 class ProductSales(db.Model):
     __tablename__ = 'product_sales'
     
     id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.String(50), nullable=False)
     date = db.Column(db.Date, nullable=False)
+    item_id = db.Column(db.Integer, nullable=False, index=True)
     total_sales = db.Column(db.Float, nullable=False, default=0.0)
-    units_sold = db.Column(db.Integer, nullable=False, default=0)
-    revenue = db.Column(db.Float, nullable=False, default=0.0)
+    total_units_ordered = db.Column(db.Integer, nullable=False, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Relationship to eligibility
-    product = db.relationship('ProductEligibility', 
-                             primaryjoin='ProductSales.product_id == ProductEligibility.product_id',
-                             foreign_keys=[product_id], 
-                             uselist=False)
     
     def to_dict(self):
         return {
             'id': self.id,
-            'product_id': self.product_id,
             'date': self.date.isoformat() if self.date else None,
+            'item_id': self.item_id,
             'total_sales': self.total_sales,
-            'units_sold': self.units_sold,
-            'revenue': self.revenue
+            'total_units_ordered': self.total_units_ordered
         }
 
 class ProductAdMetrics(db.Model):
     __tablename__ = 'product_ad_metrics'
     
     id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.String(50), nullable=False)
     date = db.Column(db.Date, nullable=False)
-    ad_spend = db.Column(db.Float, nullable=False, default=0.0)
+    item_id = db.Column(db.Integer, nullable=False, index=True)
+    ad_sales = db.Column(db.Float, nullable=False, default=0.0)
     impressions = db.Column(db.Integer, nullable=False, default=0)
+    ad_spend = db.Column(db.Float, nullable=False, default=0.0)
     clicks = db.Column(db.Integer, nullable=False, default=0)
-    conversions = db.Column(db.Integer, nullable=False, default=0)
-    ad_revenue = db.Column(db.Float, nullable=False, default=0.0)
-    cpc = db.Column(db.Float, nullable=False, default=0.0)  # Cost Per Click
-    ctr = db.Column(db.Float, nullable=False, default=0.0)  # Click Through Rate
-    roas = db.Column(db.Float, nullable=False, default=0.0)  # Return on Ad Spend
+    units_sold = db.Column(db.Integer, nullable=False, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relationship to eligibility
-    product = db.relationship('ProductEligibility',
-                             primaryjoin='ProductAdMetrics.product_id == ProductEligibility.product_id',
-                             foreign_keys=[product_id], 
-                             uselist=False)
+    # Calculated fields that can be derived from the data
+    @property
+    def cpc(self):
+        """Cost Per Click"""
+        return round(self.ad_spend / self.clicks, 2) if self.clicks > 0 else 0.0
+    
+    @property
+    def ctr(self):
+        """Click Through Rate as percentage"""
+        return round((self.clicks / self.impressions) * 100, 2) if self.impressions > 0 else 0.0
+    
+    @property
+    def roas(self):
+        """Return on Ad Spend as percentage"""
+        return round((self.ad_sales / self.ad_spend) * 100, 2) if self.ad_spend > 0 else 0.0
     
     def to_dict(self):
         return {
             'id': self.id,
-            'product_id': self.product_id,
             'date': self.date.isoformat() if self.date else None,
-            'ad_spend': self.ad_spend,
+            'item_id': self.item_id,
+            'ad_sales': self.ad_sales,
             'impressions': self.impressions,
+            'ad_spend': self.ad_spend,
             'clicks': self.clicks,
-            'conversions': self.conversions,
-            'ad_revenue': self.ad_revenue,
+            'units_sold': self.units_sold,
             'cpc': self.cpc,
             'ctr': self.ctr,
             'roas': self.roas

@@ -2,7 +2,58 @@ import logging
 from sqlalchemy import text
 from app import db
 from gemini import generate_sql_query, format_response
-from data_loader import get_database_schema
+def get_database_schema():
+    """Get comprehensive database schema information for AI context"""
+    schema_info = """
+    DATABASE SCHEMA:
+    
+    1. product_sales table:
+       - id (Primary Key)
+       - date (Date of sales in YYYY-MM-DD format)
+       - item_id (Product identifier - integer)
+       - total_sales (Total sales amount in dollars - float)
+       - total_units_ordered (Number of units ordered - integer)
+       - created_at (Timestamp)
+    
+    2. product_ad_metrics table:
+       - id (Primary Key)
+       - date (Date of advertising metrics in YYYY-MM-DD format)
+       - item_id (Product identifier - integer, matches product_sales.item_id)
+       - ad_sales (Revenue from advertising - float)
+       - impressions (Number of ad impressions - integer)
+       - ad_spend (Amount spent on advertising - float)
+       - clicks (Number of ad clicks - integer)
+       - units_sold (Number of units sold through ads - integer)
+       - created_at (Timestamp)
+       
+       CALCULATED FIELDS (use these formulas in queries):
+       - CPC (Cost Per Click): ad_spend / clicks (when clicks > 0)
+       - CTR (Click Through Rate %): (clicks / impressions) * 100 (when impressions > 0)
+       - RoAS (Return on Ad Spend %): (ad_sales / ad_spend) * 100 (when ad_spend > 0)
+    
+    3. product_eligibility table:
+       - id (Primary Key)
+       - item_id (Product identifier - integer)
+       - eligibility_datetime (DateTime when eligibility was checked)
+       - eligibility (Boolean - TRUE if eligible for ads, FALSE if not)
+       - message (Text explaining eligibility status, empty if eligible)
+       - created_at (Timestamp)
+    
+    IMPORTANT RELATIONSHIPS:
+    - All tables are connected via item_id (integer)
+    - Use JOINs to get comprehensive product information
+    - product_sales contains daily total sales performance
+    - product_ad_metrics contains daily advertising performance and metrics
+    - product_eligibility contains current advertising eligibility status
+    
+    SAMPLE QUERIES:
+    - Total sales: SELECT SUM(total_sales) FROM product_sales;
+    - Total ad spend: SELECT SUM(ad_spend) FROM product_ad_metrics;
+    - Overall RoAS: SELECT (SUM(ad_sales)/SUM(ad_spend))*100 FROM product_ad_metrics WHERE ad_spend > 0;
+    - Highest CPC product: SELECT item_id, (ad_spend/clicks) as cpc FROM product_ad_metrics WHERE clicks > 0 ORDER BY cpc DESC LIMIT 1;
+    - Products by sales: SELECT item_id, SUM(total_sales) as sales FROM product_sales GROUP BY item_id ORDER BY sales DESC;
+    """
+    return schema_info
 
 class EcommerceAIAgent:
     """

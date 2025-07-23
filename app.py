@@ -37,10 +37,16 @@ with app.app_context():
     # Import and register routes
     from routes import *
     
-    # Load sample data if database is empty
-    from data_loader import load_sample_data
-    if models.ProductSales.query.count() == 0:
-        load_sample_data()
+    # Load real data if database is empty
+    try:
+        if models.ProductSales.query.count() == 0:
+            from real_data_loader import load_all_real_data
+            load_all_real_data()
+    except Exception as e:
+        # If tables don't exist, load the data anyway
+        logging.info(f"Tables may not exist yet, loading data: {e}")
+        from real_data_loader import load_all_real_data
+        load_all_real_data()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
